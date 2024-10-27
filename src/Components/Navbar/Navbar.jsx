@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 import logo from '../../../public/logo.png'
 import { FaShoppingBag } from "react-icons/fa";
-const Navbar = () => {
+const Navbar = ({ cartItemCount, onCartClick }) => {
     return (
         <>
             <header className="p-4 bg-orange-100 ">
@@ -28,7 +29,16 @@ const Navbar = () => {
                         </ul>
                     </div>
                     <div className="items-center flex-shrink-0 hidden lg:flex gap-3">
-                        <button><FaShoppingBag className="text-5xl" /></button>
+                        
+                        {/* shopping card here */}
+                        <button onClick={onCartClick} className="relative">
+                            <FaShoppingBag className="text-5xl" />
+                            {cartItemCount > 0 && (
+                                <span className="absolute top-0 right-0 w-6 h-6 bg-red-500 text-white rounded-full text-center">
+                                    {cartItemCount}
+                                </span>
+                            )}
+                        </button>
                         <button className="self-center px-8 py-3 font-semibold rounded bg-[#e02f2f] uppercase text-white">order now</button>
                     </div>
                     <button className="p-4 lg:hidden">

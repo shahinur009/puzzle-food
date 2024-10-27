@@ -1,59 +1,48 @@
+/* eslint-disable react/prop-types */
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { AiOutlineTrademark } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineTrademark } from "react-icons/ai";
 import { IoIosArrowDown } from "react-icons/io";
 import { PiGreaterThan } from "react-icons/pi";
 
-const Foods = () => {
+const Foods = ({ isSidebarOpen, setIsSidebarOpen, cartItems, setCartItems }) => {
     const [foodData, setFoodData] = useState([]);
-    const [cartItems, setCartItems] = useState([]);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+// get data for food items
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // data fetch from public folder
                 const res = await axios.get(`data.json`);
                 setFoodData(res.data);
-                console.log(res.data);
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
         };
 
         fetchData();
-
-        // save card data to local storage
-        const storedCartItems = JSON.parse(localStorage.getItem("cartItems"));
-        if (storedCartItems) {
-            setCartItems(storedCartItems);
-            setIsSidebarOpen(true);
-        }
     }, []);
 
+// Handle add card food items here
     const handleAddToCart = (food) => {
         const existingItem = cartItems.find((item) => item.id === food.id);
 
         if (existingItem) {
-            // check item already exists
             const updatedCart = cartItems.map((item) =>
                 item.id === food.id ? { ...item, quantity: item.quantity + 1, totalPrice: (item.quantity + 1) * item.price } : item
             );
             setCartItems(updatedCart);
             localStorage.setItem("cartItems", JSON.stringify(updatedCart));
         } else {
-            
             const newItem = { ...food, quantity: 1, totalPrice: food.price };
             const updatedCart = [...cartItems, newItem];
             setCartItems(updatedCart);
             localStorage.setItem("cartItems", JSON.stringify(updatedCart));
         }
 
-        // open side bar when add to card foods
-        setIsSidebarOpen(true); 
+        setIsSidebarOpen(true);
     };
 
-    // handle increase
+// card item Increase here
     const handleIncreaseQuantity = (id) => {
         const updatedCart = cartItems.map((item) =>
             item.id === id ? { ...item, quantity: item.quantity + 1, totalPrice: (item.quantity + 1) * item.price } : item
@@ -62,7 +51,7 @@ const Foods = () => {
         localStorage.setItem("cartItems", JSON.stringify(updatedCart));
     };
 
-    // handle decrease
+    // card item Decrease here
     const handleDecreaseQuantity = (id) => {
         const updatedCart = cartItems.map((item) =>
             item.id === id && item.quantity > 1
@@ -73,10 +62,23 @@ const Foods = () => {
         localStorage.setItem("cartItems", JSON.stringify(updatedCart.filter(item => item.quantity > 0)));
     };
 
-    // // Close the sidebar
-    const handleSidebarClose = () => {
-        setIsSidebarOpen(false); 
+    // delete add to card data here.
+    const handleRemoveFromCart = (id) => {
+        const updatedCart = cartItems.filter((item) => item.id !== id);
+        setCartItems(updatedCart);
+        localStorage.setItem("cartItems", JSON.stringify(updatedCart));
     };
+
+    // handle right side bar close
+    const handleSidebarClose = () => {
+        setIsSidebarOpen(false);
+    };
+
+    // card item count here
+    const cartItemCount = cartItems.length;
+
+    // total amount calculate here
+    const totalAmount = cartItems.reduce((total, item) => total + item.totalPrice, 0);
 
     return (
         <div className="mt-5">
@@ -100,6 +102,7 @@ const Foods = () => {
                 <button className="py-2 px-5 border flex justify-end items-center gap-4 mt-1">Menu <IoIosArrowDown /></button>
             </div>
 
+            {/* Food Card Map here */}
             <div className="grid grid-cols-3 gap-3 px-5">
                 {foodData.map((food) => {
                     const isAddedToCart = cartItems.some((item) => item.id === food.id);
@@ -117,7 +120,7 @@ const Foods = () => {
                                     onClick={() => handleAddToCart(food)}
                                     disabled={isAddedToCart}
                                 >
-                                    {isAddedToCart ? "Added to Cart" : "Add to Card"}
+                                    {isAddedToCart ? "Added to Cart" : "Add to Cart"}
                                 </button>
                                 <button className="outline py-2 text-[#e02f2f] rounded-md">Customize</button>
                             </div>
@@ -129,40 +132,64 @@ const Foods = () => {
 
             {/* Sidebar */}
             {isSidebarOpen && (
-                <div className="fixed top-0 right-0 w-80 h-full bg-[#e02f2f] shadow-lg p-5 overflow-y-auto z-50">
-                    <button
-                        className="text-white text-xl mb-5"
-                        onClick={handleSidebarClose}
-                    >
-                        X 
-                    </button>
-                    <h2 className="text-2xl font-bold mb-4">Card Foods</h2>
-                    {cartItems.length === 0 ? (
-                        <p>No items in the cart.</p>
-                    ) : (
-                        cartItems.map((item, index) => (
-                            <div key={index} className="mb-4 border-b pb-2">
-                                <h3 className="text-lg font-semibold">{item.name}</h3>
-                                <p>{item.price}$ /each</p>
-                                <p>Total: {item.totalPrice}$</p>
-                                <div className="flex items-center gap-5 bg-white w-1/3">
-                                    <button
-                                        className="bg-white px-2 rounded"
-                                        onClick={() => handleDecreaseQuantity(item.id)}
-                                    >
-                                        -
-                                    </button>
-                                    <span className="bg-white">{item.quantity}</span>
-                                    <button
-                                        className="bg-white px-2 rounded"
-                                        onClick={() => handleIncreaseQuantity(item.id)}
-                                    >
-                                        +
-                                    </button>
+                <div className="fixed top-0 right-0 w-80 h-full bg-[#e02f2f] shadow-lg p-5 overflow-y-auto z-50 flex flex-col justify-between">
+                    <div>
+                        <div className="flex justify-between items-center">
+                            <button className="text-white text-xl mb-5" onClick={handleSidebarClose}>
+                                Cart ({cartItemCount})
+                            </button>
+                            <button
+                                className="text-white text-xl mb-5"
+                                onClick={handleSidebarClose}
+                            >
+                                Close
+                            </button>
+                        </div>
+                        <h2 className="text-2xl font-bold mb-4">Cart Items</h2>
+                        {cartItems.length === 0 ? (
+                            <p>No items in the cart.</p>
+                        ) : (
+                            cartItems.map((item) => (
+                                <div key={item.id} className="mb-8 border pb-2 flex justify-center items-center gap-5 relative">
+                                    <div>
+                                        <img src={item.image} alt="food image" className="w-20 h-20" />
+                                    </div>
+                                    <div className="absolute -mt-[116px] ml-[266px]">
+                                        <AiOutlineDelete onClick={() => handleRemoveFromCart(item.id)}
+                                            className=" mt-2 text-2xl cursor-pointer rounded bg-white text-end items-end mx-auto" />
+                                    </div>
+                                    <div>
+
+                                        <h3 className="text-lg font-semibold">{item.name}</h3>
+                                        <p>{item.price}$ /each</p>
+                                        <p>Total: {item.totalPrice}$</p>
+                                        <div className="">
+                                            <div className="bg-slate-200 flex items-center w-1/3 ">
+                                                <button
+                                                    className="px-2 bg-slate-200"
+                                                    onClick={() => handleDecreaseQuantity(item.id)}
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="bg-slate-200">{item.quantity}</span>
+                                                <button
+                                                    className=" px-2 bg-slate-200"
+                                                    onClick={() => handleIncreaseQuantity(item.id)}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
-                    )}
+                            ))
+                        )}
+                    </div>
+                    {/* Sidebar Total Amount */}
+                    <div className="border-t pt-4">
+                        <h3 className="text-white text-xl font-bold">Total Amount: ${totalAmount.toFixed(2)}</h3>
+                    </div>
                 </div>
             )}
         </div>
