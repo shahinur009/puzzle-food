@@ -135,7 +135,7 @@ const Foods = ({ isSidebarOpen, setIsSidebarOpen, cartItems, setCartItems }) => 
                 <div className="fixed top-0 right-0 w-80 h-full bg-[#e02f2f] shadow-lg p-5 overflow-y-auto z-50 flex flex-col justify-between">
                     <div>
                         <div className="flex justify-between items-center">
-                            <button className="text-white text-xl mb-5" onClick={handleSidebarClose}>
+                            <button className="text-white text-xl mb-5">
                                 Cart ({cartItemCount})
                             </button>
                             <button
